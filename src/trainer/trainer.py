@@ -148,11 +148,11 @@ class Trainer(BaseTrainer):
 
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
+        print("SDEVIL:", batch["spectrogram"].device)
         if is_train:
             self.optimizer.zero_grad()
 
         batch["pred"] = self.model(**batch)
-
         batch["loss"] = self.criterion(batch["pred"], batch["target"])
 
         metrics.update("loss", batch["loss"].item())
