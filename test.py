@@ -53,7 +53,7 @@ def main(config, out_file):
     model = model.to(device)
     model.eval()
 
-    wav2mel = make_mel.MelSpectrogram()
+    wav2mel = torchaudio.transforms.LFCC()
     res = []
 
     with torch.no_grad():
