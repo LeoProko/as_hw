@@ -17,7 +17,7 @@ from src.utils.parse_config import ConfigParser
 from src.utils import calculate_eer
 from src.utils import make_mel
 
-DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "model_best.pth"
+DEFAULT_CHECKPOINT_PATH = ROOT_PATH
 TEST_DATA_DIR = ROOT_PATH / "test_data"
 
 
@@ -29,7 +29,7 @@ def load_audio(path, target_sr):
     return audio_tensor
 
 
-def main(config, out_file):
+def main(config, out_file, ckpt_name):
     logger = config.get_logger("test")
 
     # define cpu or gpu if possible
@@ -42,7 +42,9 @@ def main(config, out_file):
     model = config.init_obj(config["arch"], module_model)
     logger.info(model)
 
-    logger.info("Loading checkpoint: {} ...".format(DEFAULT_CHECKPOINT_PATH))
+    logger.info(
+        "Loading checkpoint: {} ...".format(DEFAULT_CHECKPOINT_PATH / Path(ckpt_name))
+    )
     checkpoint = torch.load(DEFAULT_CHECKPOINT_PATH, map_location=device)
     state_dict = checkpoint["state_dict"]
     if config["n_gpu"] > 1:
@@ -53,7 +55,7 @@ def main(config, out_file):
     model = model.to(device)
     model.eval()
 
-    wav2mel = torchaudio.transforms.LFCC()
+    wav2spec = torchaudio.transforms.LFCC(n_lfcc=config["n_lfcc"])
     res = []
 
     with torch.no_grad():
@@ -63,7 +65,7 @@ def main(config, out_file):
             )
             audio = audio[:, : config["max_audio_len"]]
             audio = pad(audio, (0, config["max_audio_len"] - audio.size(-1)))
-            spec = wav2mel(audio).to(device)
+            spec = wav2spec(audio).to(device)
             logits = model(spectrogram=spec)
             pred = torch.softmax(logits, dim=-1)[:, 1].detach().cpu().tolist()[0]
             res.append((fname, pred))
@@ -98,13 +100,13 @@ if __name__ == "__main__":
         type=str,
         help="config file path (default: None)",
     )
-    # args.add_argument(
-    #     "-r",
-    #     "--resume",
-    #     default=str(DEFAULT_CHECKPOINT_PATH.absolute().resolve()),
-    #     type=str,
-    #     help="path to latest checkpoint (default: None)",
-    # )
+    args.add_argument(
+        "-r",
+        "--resume",
+        default=str(DEFAULT_CHECKPOINT_PATH.absolute().resolve()),
+        type=str,
+        help="path to latest checkpoint (default: None)",
+    )
     args.add_argument(
         "-d",
         "--device",
@@ -184,4 +186,4 @@ if __name__ == "__main__":
     config["data"]["eval"]["batch_size"] = args.batch_size
     config["data"]["eval"]["n_jobs"] = args.jobs
 
-    main(config, args.output)
+    main(config, args.output, args.resume)
