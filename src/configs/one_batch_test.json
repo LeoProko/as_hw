@@ -1,0 +1,86 @@
+{
+  "name": "one_batch_test",
+  "n_gpu": 1,
+  "sr": 16000,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "LFCC",
+      "args": {
+      }
+    },
+    "log_spec": true
+  },
+  "arch": {
+    "type": "LCNN",
+    "args": {
+      "channels": [64, 32, 48, 64, 32, 32]
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 5,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "train",
+            "limit": 10,
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    },
+    "dev": {
+      "batch_size": 5,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "dev",
+            "limit": 10,
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "AdamW",
+    "args": {
+      "lr": 2e-4,
+      "weight_decay": 0.1
+    }
+  },
+  "loss": {
+    "type": "CrossEntropyLoss",
+    "module": "torch.nn",
+    "args": {}
+  },
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 10,
+      "epochs": 10,
+      "anneal_strategy": "cos",
+      "max_lr": 2e-4,
+      "pct_start": 0.1
+    }
+  },
+  "trainer": {
+    "epochs": 10,
+    "save_dir": "saved/",
+    "save_period": 5,
+    "verbosity": 2,
+    "monitor": "min dev_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "dla-5-as",
+    "len_epoch": 10,
+    "grad_norm_clip": 10
+  }
+}
