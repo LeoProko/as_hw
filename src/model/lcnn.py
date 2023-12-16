@@ -23,7 +23,7 @@ class MFM2D(nn.Module):
         assert x.size(-1) % 2 == 0
 
         B, H, W, C = x.shape
-        res = torch.zeros(B, H, W, C // 2)
+        res = torch.zeros(B, H, W, C // 2, device=x.device)
 
         for i in range(C // 2):
             l = x[:, :, :, i]
