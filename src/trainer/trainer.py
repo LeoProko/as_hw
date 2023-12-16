@@ -190,7 +190,7 @@ class Trainer(BaseTrainer):
             self.writer.set_step(epoch * self.len_epoch, part)
             self._log_scalars(self.evaluation_metrics)
             self._log_predictions(is_train=False, **batch)
-            self._log_spectrogram(batch["spectrogram"])
+            # self._log_spectrogram(batch["spectrogram"])
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():
@@ -258,7 +258,7 @@ class Trainer(BaseTrainer):
                 {
                     "audio": wandb_audio,
                     "pred": neg[i][0],
-                    "target": 1,
+                    "target": 0,
                 }
             )
 
