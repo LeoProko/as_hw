@@ -7,6 +7,7 @@ import torch
 import torchaudio
 from torch.nn.functional import pad
 from tqdm.auto import tqdm
+import numpy as np
 
 import src.model as module_model
 from src.trainer import Trainer
