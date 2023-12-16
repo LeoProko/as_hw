@@ -224,23 +224,46 @@ class Trainer(BaseTrainer):
         *args,
         **kwargs,
     ):
-        table = []
+        pos_table = []
+        neg_table = []
+
         pred = torch.softmax(pred, dim=-1)[:, 1]
 
-        for i in range(min(10, len(audio))):
-            wandb_audio = self.writer.wandb.Audio(
-                audio[i], sample_rate=self.config["sr"]
-            )
+        pos = []
+        neg = []
 
-            table.append(
+        for p, t, a in zip(pred, target, audio):
+            if t == 1:
+                pos.append((p, a))
+            else:
+                neg.append((p, a))
+
+        for i in range(min(5, len(pos))):
+            wandb_audio = self.writer.wandb.Audio(
+                pos[i][1], sample_rate=self.config["sr"]
+            )
+            pos_table.append(
                 {
                     "audio": wandb_audio,
-                    "pred": pred[i],
-                    "target": target[i],
+                    "pred": pos[i][0],
+                    "target": 1,
                 }
             )
 
-        self.writer.add_table("kek", pd.DataFrame(table))
+        for i in range(min(5, len(neg))):
+            wandb_audio = self.writer.wandb.Audio(
+                neg[i][1], sample_rate=self.config["sr"]
+            )
+            neg_table.append(
+                {
+                    "audio": wandb_audio,
+                    "pred": neg[i][0],
+                    "target": 1,
+                }
+            )
+
+        self.writer.add_table("pos", pd.DataFrame(pos_table))
+        self.writer.add_table("neg", pd.DataFrame(neg_table))
 
         err, thr = calculate_eer.compute_eer(
             pred[target == 1].detach().cpu().numpy(),
@@ -248,13 +271,6 @@ class Trainer(BaseTrainer):
         )
         self.writer.add_scalar("err", err)
         self.writer.add_scalar("thr", thr)
-
-        # if not is_train:
-        #     test_audio_path = ROOT_PATH / "data" / "hw_test"
-        #     for _, _, fnames in os.walk(str(test_audio_path)):
-        #         with torch.no_grad():
-        #             audio = self.load_audio(path[i])
-        #             spec = Mel
 
     def _log_spectrogram(self, spectrogram_batch):
         spectrogram = random.choice(spectrogram_batch.cpu())
