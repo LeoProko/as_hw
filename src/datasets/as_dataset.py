@@ -18,6 +18,8 @@ class AsDataset(BaseDataset):
         if data_dir is None:
             data_dir = ROOT_PATH / "data" / "LA"
             data_dir.mkdir(exist_ok=True, parents=True)
+        else:
+            data_dir = Path(data_dir)
         self._data_dir = data_dir
         index = self._get_or_load_index(part)
 
