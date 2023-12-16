@@ -22,7 +22,7 @@
   },
   "data": {
     "eval": {
-      "batch_size": 128,
+      "batch_size": 512,
       "num_workers": 4,
       "datasets": [
         {
