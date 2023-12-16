@@ -46,8 +46,8 @@ class BaseDataset(Dataset):
         audio_wave = audio_wave[:, i : i + self.max_audio_len]
         audio_wave = pad(audio_wave, (0, self.max_audio_len - audio_wave.size(-1)))
 
-        # audio_wave, audio_spec = self.process_wave(audio_wave)
-        audio_spec = self.wav2mel(audio_wave)
+        audio_wave, audio_spec = self.process_wave(audio_wave)
+        # audio_spec = self.wav2mel(audio_wave)
         return {
             "audio": audio_wave,
             "spectrogram": audio_spec,

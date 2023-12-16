@@ -10,7 +10,7 @@
       "args": {
       }
     },
-    "log_spec": true
+    "log_spec": false
   },
   "arch": {
     "type": "LCNN",

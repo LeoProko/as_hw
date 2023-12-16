@@ -136,7 +136,7 @@ class LCNN(nn.Module):
         )
         self.pred = nn.Sequential(
             *[
-                nn.Linear(2400, 160),
+                nn.Linear(1280, 160),
                 MFM1D(),
                 nn.BatchNorm1d(80),
                 nn.Linear(80, 2),
@@ -144,10 +144,8 @@ class LCNN(nn.Module):
         )
 
     def forward(self, spectrogram: torch.Tensor, *args, **kwargs):
-        # (B, 80, 251)
-
-        with open("PIZDA", "w") as fout:
-            fout.write(f"unsuka {str(spectrogram.unsqueeze(-1).device)}")
+        # (B, 80, 251): Mel
+        # (B, 40, 321): LFCC
 
         x = self.spec_transform(spectrogram.unsqueeze(-1))
         x = x.flatten(1, 3)

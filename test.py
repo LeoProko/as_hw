@@ -56,16 +56,17 @@ def main(config, out_file):
     wav2mel = make_mel.MelSpectrogram()
     res = []
 
-    for fname in os.listdir(str(TEST_DATA_DIR.absolute().resolve())):
-        audio = load_audio(
-            str((TEST_DATA_DIR / Path(fname)).absolute().resolve()), config["sr"]
-        )
-        audio = audio[:, : config["max_audio_len"]]
-        audio = pad(audio, (0, config["max_audio_len"] - audio.size(-1)))
-        spec = wav2mel(audio).to(device)
-        logits = model(spectrogram=spec)
-        pred = torch.softmax(logits, dim=-1)[:, 1].detach().cpu().tolist()[0]
-        res.append((fname, pred))
+    with torch.no_grad():
+        for fname in os.listdir(str(TEST_DATA_DIR.absolute().resolve())):
+            audio = load_audio(
+                str((TEST_DATA_DIR / Path(fname)).absolute().resolve()), config["sr"]
+            )
+            audio = audio[:, : config["max_audio_len"]]
+            audio = pad(audio, (0, config["max_audio_len"] - audio.size(-1)))
+            spec = wav2mel(audio).to(device)
+            logits = model(spectrogram=spec)
+            pred = torch.softmax(logits, dim=-1)[:, 1].detach().cpu().tolist()[0]
+            res.append((fname, pred))
 
     preds = []
     targets = []
