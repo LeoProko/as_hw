@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 
 import torch
+import torchaudio
+from torch.nn.functional import pad
 from tqdm.auto import tqdm
 
 import src.model as module_model
@@ -11,9 +13,19 @@ from src.trainer import Trainer
 from src.utils import ROOT_PATH
 from src.utils.object_loading import get_dataloaders
 from src.utils.parse_config import ConfigParser
-from src.metric import cer_metric, wer_metric
+from src.utils import calculate_eer
+from src.utils import make_mel
 
-DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
+DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "model_best.pth"
+TEST_DATA_DIR = ROOT_PATH / "test_data"
+
+
+def load_audio(path, target_sr):
+    audio_tensor, sr = torchaudio.load(path)
+    audio_tensor = audio_tensor[0:1, :]
+    if sr != target_sr:
+        audio_tensor = torchaudio.functional.resample(audio_tensor, sr, target_sr)
+    return audio_tensor
 
 
 def main(config, out_file):
@@ -22,18 +34,15 @@ def main(config, out_file):
     # define cpu or gpu if possible
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # text_encoder
-    text_encoder = config.get_text_encoder()
-
     # setup data_loader instances
-    dataloaders = get_dataloaders(config, text_encoder)
+    dataloaders = get_dataloaders(config)
 
     # build model architecture
-    model = config.init_obj(config["arch"], module_model, n_class=len(text_encoder))
+    model = config.init_obj(config["arch"], module_model)
     logger.info(model)
 
-    logger.info("Loading checkpoint: {} ...".format(config.resume))
-    checkpoint = torch.load(config.resume, map_location=device)
+    logger.info("Loading checkpoint: {} ...".format(DEFAULT_CHECKPOINT_PATH))
+    checkpoint = torch.load(DEFAULT_CHECKPOINT_PATH, map_location=device)
     state_dict = checkpoint["state_dict"]
     if config["n_gpu"] > 1:
         model = torch.nn.DataParallel(model)
@@ -43,55 +52,39 @@ def main(config, out_file):
     model = model.to(device)
     model.eval()
 
-    results = []
+    wav2mel = make_mel.MelSpectrogram()
+    res = []
 
-    cer = 0
-    wer = 0
-    den = 0
+    for fname in os.listdir(str(TEST_DATA_DIR.absolute().resolve())):
+        audio = load_audio(
+            str((TEST_DATA_DIR / Path(fname)).absolute().resolve()), config["sr"]
+        )
+        audio = audio[:, : config["max_audio_len"]]
+        audio = pad(audio, (0, config["max_audio_len"] - audio.size(-1)))
+        spec = wav2mel(audio)
+        logits = model(spectrogram=spec)
+        pred = torch.softmax(logits, dim=-1)[:, 1].detach().cpu().tolist()[0]
+        res.append((fname, pred))
+
+    preds = []
+    targets = []
 
     with torch.no_grad():
-        for batch_num, batch in enumerate(tqdm(dataloaders["test"])):
+        for batch in tqdm(dataloaders["eval"]):
             batch = Trainer.move_batch_to_device(batch, device)
-            output = model(**batch)
-            if type(output) is dict:
-                batch.update(output)
-            else:
-                batch["logits"] = output
-            batch["log_probs"] = torch.log_softmax(batch["logits"], dim=-1)
-            batch["log_probs_length"] = model.transform_input_lengths(
-                batch["spectrogram_length"]
-            )
-            batch["probs"] = batch["log_probs"].exp().cpu()
-            batch["argmax"] = batch["probs"].argmax(-1)
-            for i in range(len(batch["text"])):
-                argmax = batch["argmax"][i]
-                argmax = argmax[: int(batch["log_probs_length"][i])]
-                results.append(
-                    {
-                        "ground_trurh": batch["text"][i],
-                        "pred_text_argmax": text_encoder.ctc_decode(
-                            argmax.cpu().numpy()
-                        ),
-                        "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i],
-                            batch["log_probs_length"][i],
-                            beam_size=10,
-                        )[:10],
-                    }
-                )
-                cer += cer_metric.calc_cer(
-                    batch["text"][i], results[-1]["pred_text_beam_search"][0].text
-                )
-                wer += wer_metric.calc_wer(
-                    batch["text"][i], results[-1]["pred_text_beam_search"][0].text
-                )
-                den += 1
+            logits = model(**batch)
+            preds.extend(torch.softmax(logits, dim=-1)[:, 1].detach().cpu().tolist())
+            targets.extend(batch["target"].detach().cpu().tolist())
 
-    with Path("metrics_" + out_file).open("w") as fout:
-        fout.write(f"cer: {cer / den}\nwer: {wer / den}\n")
+    preds = np.array(preds)
+    targets = np.array(targets)
+    err, thr = calculate_eer.compute_eer(preds[targets == 1], preds[targets == 0])
 
-    with Path(out_file).open("w") as f:
-        json.dump(results, f, indent=2)
+    with Path("test_res").open("w") as fout:
+        res_str = f"test err: {err}\ntest thr: {thr}\n\n"
+        for fname, pred in res:
+            res_str += f"fname: {fname}, pred: {pred:.3f}\n"
+        fout.write(res_str)
 
 
 if __name__ == "__main__":
@@ -103,13 +96,13 @@ if __name__ == "__main__":
         type=str,
         help="config file path (default: None)",
     )
-    args.add_argument(
-        "-r",
-        "--resume",
-        default=str(DEFAULT_CHECKPOINT_PATH.absolute().resolve()),
-        type=str,
-        help="path to latest checkpoint (default: None)",
-    )
+    # args.add_argument(
+    #     "-r",
+    #     "--resume",
+    #     default=str(DEFAULT_CHECKPOINT_PATH.absolute().resolve()),
+    #     type=str,
+    #     help="path to latest checkpoint (default: None)",
+    # )
     args.add_argument(
         "-d",
         "--device",
@@ -154,9 +147,9 @@ if __name__ == "__main__":
 
     # first, we need to obtain config with model parameters
     # we assume it is located with checkpoint in the same folder
-    model_config = Path(args.resume).parent / "config.json"
-    with model_config.open() as f:
-        config = ConfigParser(json.load(f), resume=args.resume)
+    # model_config = Path(args.resume).parent / "config.json"
+    with open(args.config, "r") as f:
+        config = ConfigParser(json.load(f))
 
     # update with addition configs from `args.config` if provided
     if args.config is not None:
@@ -164,29 +157,29 @@ if __name__ == "__main__":
             config.config.update(json.load(f))
 
     # if `--test-data-folder` was provided, set it as a default test set
-    if args.test_data_folder is not None:
-        test_data_folder = Path(args.test_data_folder).absolute().resolve()
-        assert test_data_folder.exists()
-        config.config["data"] = {
-            "test": {
-                "batch_size": args.batch_size,
-                "num_workers": args.jobs,
-                "datasets": [
-                    {
-                        "type": "CustomDirAudioDataset",
-                        "args": {
-                            "audio_dir": str(test_data_folder / "audio"),
-                            "transcription_dir": str(
-                                test_data_folder / "transcriptions"
-                            ),
-                        },
-                    }
-                ],
-            }
-        }
+    # if args.test_data_folder is not None:
+    #     test_data_folder = Path(args.test_data_folder).absolute().resolve()
+    #     assert test_data_folder.exists()
+    #     config.config["data"] = {
+    #         "test": {
+    #             "batch_size": args.batch_size,
+    #             "num_workers": args.jobs,
+    #             "datasets": [
+    #                 {
+    #                     "type": "CustomDirAudioDataset",
+    #                     "args": {
+    #                         "audio_dir": str(test_data_folder / "audio"),
+    #                         "transcription_dir": str(
+    #                             test_data_folder / "transcriptions"
+    #                         ),
+    #                     },
+    #                 }
+    #             ],
+    #         }
+    #     }
 
-    assert config.config.get("data", {}).get("test", None) is not None
-    config["data"]["test"]["batch_size"] = args.batch_size
-    config["data"]["test"]["n_jobs"] = args.jobs
+    assert config.config.get("data", {}).get("eval", None) is not None
+    config["data"]["eval"]["batch_size"] = args.batch_size
+    config["data"]["eval"]["n_jobs"] = args.jobs
 
     main(config, args.output)
