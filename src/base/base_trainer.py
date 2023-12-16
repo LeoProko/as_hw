@@ -17,7 +17,7 @@ class BaseTrainer:
         self.config = config
         self.logger = config.get_logger("trainer", config["trainer"]["verbosity"])
 
-        self.model = model.to(device)
+        self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.metrics = metrics

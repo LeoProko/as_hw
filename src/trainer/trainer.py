@@ -75,6 +75,7 @@ class Trainer(BaseTrainer):
         for tensor_for_gpu in [
             "spectrogram",
             "target",
+            "audio",
         ]:
             batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
         return batch
