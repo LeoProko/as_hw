@@ -228,7 +228,7 @@ class Trainer(BaseTrainer):
         table = []
         pred = torch.softmax(pred, dim=-1)[:, 1]
 
-        for i in range(len(audio)):
+        for i in range(max(10, len(audio))):
             wandb_audio = self.writer.wandb.Audio(
                 audio[i], sample_rate=self.config["sr"]
             )
