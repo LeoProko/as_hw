@@ -76,7 +76,7 @@
   "trainer": {
     "epochs": 10,
     "save_dir": "saved/",
-    "save_period": 5,
+    "save_period": 1,
     "verbosity": 2,
     "monitor": "min dev_loss",
     "early_stop": 500,
