@@ -148,7 +148,10 @@ class Trainer(BaseTrainer):
 
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-        print("SDEVIL:", batch["spectrogram"].device)
+        with open("SUKA", "w") as fout:
+            fout.write(
+                f"sdef {str(self.device)}, spec: {str(batch['spectrogram'].device)}"
+            )
         if is_train:
             self.optimizer.zero_grad()
 
