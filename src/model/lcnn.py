@@ -98,10 +98,10 @@ class LCNNBlock(nn.Module):
                     in_features, out_features * 2, kernel_size=3, stride=1, padding=1
                 ),
                 MFM2D(),
-                nn.Dropout(0.1),
-                MyConv2d(
-                    out_features, out_features, kernel_size=1, stride=1, padding=0
-                ),
+                # nn.Dropout(0.1),
+                # MyConv2d(
+                #     out_features, out_features, kernel_size=1, stride=1, padding=0
+                # ),
             ]
         )
 

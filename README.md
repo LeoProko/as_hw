@@ -1,13 +1,11 @@
 # Train
 
 ```bash
-./setup.sh
-python3 train.py -c src/configs/train.json
+python3 train.py -c src/configs/kaggle/train.json
 ```
 
 # Test
 
 ```bash
-./setup.sh
-python3 test.py -c src/configs/train.json -r model_best.pth
+python3 test.py -c src/configs/kaggle/test.json -r lcnn-1.pth
 ```
