@@ -30,7 +30,7 @@
           "args": {
             "part": "eval",
             "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
-            "index_dir": "/kaggle/working/",
+            "index_dir": "/kaggle/working",
             "max_audio_len": 64000
           },
           "module": "src.datasets"

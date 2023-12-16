@@ -45,7 +45,9 @@ def main(config, out_file, ckpt_name):
     logger.info(
         "Loading checkpoint: {} ...".format(DEFAULT_CHECKPOINT_PATH / Path(ckpt_name))
     )
-    checkpoint = torch.load(DEFAULT_CHECKPOINT_PATH, map_location=device)
+    checkpoint = torch.load(
+        DEFAULT_CHECKPOINT_PATH / Path(ckpt_name), map_location=device
+    )
     state_dict = checkpoint["state_dict"]
     if config["n_gpu"] > 1:
         model = torch.nn.DataParallel(model)
