@@ -14,19 +14,23 @@ logger = logging.getLogger(__name__)
 
 
 class AsDataset(BaseDataset):
-    def __init__(self, part, data_dir=None, *args, **kwargs):
+    def __init__(self, part, data_dir=None, index_dir=None, *args, **kwargs):
         if data_dir is None:
             data_dir = ROOT_PATH / "data" / "LA"
             data_dir.mkdir(exist_ok=True, parents=True)
         else:
             data_dir = Path(data_dir)
         self._data_dir = data_dir
+        if index_dir is None:
+            self._index_dir = self._data_dir
+        else:
+            self._index_dir = Path(index_dir)
         index = self._get_or_load_index(part)
 
         super().__init__(index, *args, **kwargs)
 
     def _get_or_load_index(self, part):
-        index_path = self._data_dir / f"{part}_index.json"
+        index_path = self._index_dir / f"{part}_index.json"
         if index_path.exists():
             with index_path.open() as f:
                 index = json.load(f)

@@ -28,6 +28,7 @@
             "part": "train",
             "limit": 10,
             "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
             "max_audio_len": 64000
           },
           "module": "src.datasets"
@@ -44,6 +45,7 @@
             "part": "dev",
             "limit": 10,
             "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
             "max_audio_len": 64000
           },
           "module": "src.datasets"
