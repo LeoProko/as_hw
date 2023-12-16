@@ -140,10 +140,7 @@ class LCNN(nn.Module):
     def forward(self, spectrogram: torch.Tensor, *args, **kwargs):
         # (B, 80, 251)
 
-        print(spectrogram.device)
-
-        spectrogram = spectrogram.unsqueeze(-1)
-        x = self.spec_transform(spectrogram)
+        x = self.spec_transform(spectrogram.unsqueeze(-1))
         x = x.flatten(1, 3)
         x = self.pred(x)
 
