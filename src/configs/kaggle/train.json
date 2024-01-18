@@ -7,10 +7,11 @@
     "spectrogram": {
       "type": "LFCC",
       "args": {
-        "n_lfcc": 80
+        "n_lfcc": 80,
+        "log_lf": true
       }
     },
-    "log_spec": true
+    "log_spec": false
   },
   "arch": {
     "type": "LCNN",
