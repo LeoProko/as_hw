@@ -155,7 +155,7 @@ class Trainer(BaseTrainer):
             preds[targets == 0],
         )
 
-        self.writer.add_scalar("err", err)
+        self.train_metrics.update("err", err)
         self.writer.add_scalar("thr", thr)
 
         log = last_train_metrics
@@ -224,7 +224,7 @@ class Trainer(BaseTrainer):
             preds[targets == 0],
         )
 
-        self.writer.add_scalar("err", err)
+        self.evaluation_metrics.update("err", err)
         self.writer.add_scalar("thr", thr)
 
         # add histogram of model parameters to the tensorboard

@@ -35,14 +35,14 @@
         }
       ]
     },
-    "dev": {
+    "eval": {
       "batch_size": 256,
       "num_workers": 4,
       "datasets": [
         {
           "type": "AsDataset",
           "args": {
-            "part": "dev",
+            "part": "eval",
             "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
             "index_dir": "/kaggle/working/",
             "max_audio_len": 64000
@@ -79,7 +79,7 @@
     "save_dir": "saved/",
     "save_period": 1,
     "verbosity": 2,
-    "monitor": "min dev_err",
+    "monitor": "min eval_err",
     "early_stop": 500,
     "visualize": "wandb",
     "wandb_project": "dla-5-as",
