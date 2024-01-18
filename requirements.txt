@@ -8,11 +8,9 @@ pandas
 hparams
 unidecode
 inflect
-
 speechbrain~=0.5.12
 datasets
 torch_audiomentations
-editdistance
 wandb
 pyctcdecode
 torchaudio~=0.11.0

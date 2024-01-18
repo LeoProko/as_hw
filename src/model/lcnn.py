@@ -2,59 +2,13 @@ import torch
 from torch import nn
 
 
-class Transpose(nn.Module):
-    def __init__(self, dim_1: int, dim_2: int):
-        super().__init__()
-
-        self.dim_1 = dim_1
-        self.dim_2 = dim_2
-
-    def forward(self, x: torch.Tensor):
-        return x.transpose(self.dim_1, self.dim_2)
-
-
-class MFM2D(nn.Module):
+class MFMBlock(nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, x: torch.Tensor):
-        # x: (B, H, W, C)
-
-        assert x.size(-1) % 2 == 0
-
-        B, H, W, C = x.shape
-        res = torch.zeros(B, H, W, C // 2, device=x.device)
-
-        for i in range(C // 2):
-            l = x[:, :, :, i]
-            r = x[:, :, :, i + C // 2]
-
-            o = l
-            o[l < r] = r[l < r]
-
-            res[:, :, :, i] = o
-
-        return res
-
-
-class MFM1D(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x: torch.Tensor):
-        # x: (B, C)
-
-        assert x.size(-1) % 2 == 0
-
-        B, C = x.shape
-
-        l = x[:, : C // 2]
-        r = x[:, C // 2 :]
-
-        res = l
-        res[l < r] = r[l < r]
-
-        return res
+        splited = torch.split(x, x.size(-1) // 2, -1)
+        return torch.max(splited[0], splited[1])
 
 
 class MyConv1d(nn.Conv1d):
@@ -92,12 +46,12 @@ class LCNNBlock(nn.Module):
                 MyConv2d(
                     in_features, in_features * 2, kernel_size=1, stride=1, padding=0
                 ),
-                MFM2D(),
+                MFMBlock(),
                 MyBatchNorm2d(in_features),
                 MyConv2d(
                     in_features, out_features * 2, kernel_size=3, stride=1, padding=1
                 ),
-                MFM2D(),
+                MFMBlock(),
                 nn.Dropout(0.1),
                 MyConv2d(
                     out_features, out_features, kernel_size=1, stride=1, padding=0
@@ -121,7 +75,7 @@ class LCNN(nn.Module):
         self.spec_transform = nn.Sequential(
             *[
                 MyConv2d(1, channels[0], kernel_size=5, stride=1, padding=2),
-                MFM2D(),
+                MFMBlock(),
                 MyMaxPool2d(2, 2),
                 LCNNBlock(channels[1], channels[2]),
                 MyMaxPool2d(2, 2),
@@ -137,7 +91,7 @@ class LCNN(nn.Module):
         self.pred = nn.Sequential(
             *[
                 nn.Linear(3200, 160),
-                MFM1D(),
+                MFMBlock(),
                 nn.BatchNorm1d(80),
                 nn.Linear(80, 2),
             ]

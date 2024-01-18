@@ -55,7 +55,7 @@
   "optimizer": {
     "type": "AdamW",
     "args": {
-      "lr": 1e-4,
+      "lr": 3e-4,
       "weight_decay": 0.1
     }
   },
@@ -67,10 +67,10 @@
   "lr_scheduler": {
     "type": "OneCycleLR",
     "args": {
-      "steps_per_epoch": 100,
+      "steps_per_epoch": 200,
       "epochs": 10,
       "anneal_strategy": "cos",
-      "max_lr": 1e-4,
+      "max_lr": 3e-4,
       "pct_start": 0.1
     }
   },
@@ -79,11 +79,11 @@
     "save_dir": "saved/",
     "save_period": 1,
     "verbosity": 2,
-    "monitor": "min dev_loss",
+    "monitor": "min dev_err",
     "early_stop": 500,
     "visualize": "wandb",
     "wandb_project": "dla-5-as",
-    "len_epoch": 100,
+    "len_epoch": 200,
     "grad_norm_clip": 10
   }
 }

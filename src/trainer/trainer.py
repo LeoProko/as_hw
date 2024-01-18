@@ -10,6 +10,7 @@ from torch.nn.utils import clip_grad_norm_
 from torchvision.transforms import ToTensor
 from tqdm.auto import tqdm
 import torchaudio
+import numpy as np
 
 from src.base import BaseTrainer
 from src.logger.utils import plot_spectrogram_to_buf
@@ -32,14 +33,12 @@ class Trainer(BaseTrainer):
         config,
         device,
         dataloaders,
-        text_encoder,
         lr_scheduler=None,
         len_epoch=None,
         skip_oom=True,
     ):
         super().__init__(model, criterion, metrics, optimizer, config, device)
         self.skip_oom = skip_oom
-        self.text_encoder = text_encoder
         self.config = config
         self.train_dataloader = dataloaders["train"]
         if len_epoch is None:
@@ -57,12 +56,14 @@ class Trainer(BaseTrainer):
 
         self.train_metrics = MetricTracker(
             "loss",
+            "err",
             "grad norm",
             *[m.name for m in self.metrics],
             writer=self.writer,
         )
         self.evaluation_metrics = MetricTracker(
             "loss",
+            "err",
             *[m.name for m in self.metrics],
             writer=self.writer,
         )
@@ -95,6 +96,10 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         self.writer.add_scalar("epoch", epoch)
+
+        preds = []
+        targets = []
+
         for batch_idx, batch in enumerate(
             tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
         ):
@@ -103,6 +108,10 @@ class Trainer(BaseTrainer):
                     batch,
                     is_train=True,
                     metrics=self.train_metrics,
+                )
+                targets.append(batch["target"].detach().cpu().numpy())
+                preds.append(
+                    torch.softmax(batch["pred"], dim=-1)[:, 1].detach().cpu().numpy()
                 )
             except RuntimeError as e:
                 if "out of memory" in str(e) and self.skip_oom:
@@ -138,6 +147,17 @@ class Trainer(BaseTrainer):
                 self.train_metrics.reset()
             if batch_idx >= self.len_epoch:
                 break
+
+        preds = np.concatenate(preds)
+        targets = np.concatenate(targets)
+        err, thr = calculate_eer.compute_eer(
+            preds[targets == 1],
+            preds[targets == 0],
+        )
+
+        self.writer.add_scalar("err", err)
+        self.writer.add_scalar("thr", thr)
+
         log = last_train_metrics
 
         for part, dataloader in self.evaluation_dataloaders.items():
@@ -176,6 +196,8 @@ class Trainer(BaseTrainer):
         """
         self.model.eval()
         self.evaluation_metrics.reset()
+        preds = []
+        targets = []
         with torch.no_grad():
             for batch_idx, batch in tqdm(
                 enumerate(dataloader),
@@ -187,10 +209,23 @@ class Trainer(BaseTrainer):
                     is_train=False,
                     metrics=self.evaluation_metrics,
                 )
+                targets.append(batch["target"].detach().cpu().numpy())
+                preds.append(
+                    torch.softmax(batch["pred"], dim=-1)[:, 1].detach().cpu().numpy()
+                )
             self.writer.set_step(epoch * self.len_epoch, part)
             self._log_scalars(self.evaluation_metrics)
             self._log_predictions(is_train=False, **batch)
-            # self._log_spectrogram(batch["spectrogram"])
+
+        preds = np.concatenate(preds)
+        targets = np.concatenate(targets)
+        err, thr = calculate_eer.compute_eer(
+            preds[targets == 1],
+            preds[targets == 0],
+        )
+
+        self.writer.add_scalar("err", err)
+        self.writer.add_scalar("thr", thr)
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():
@@ -264,13 +299,6 @@ class Trainer(BaseTrainer):
 
         self.writer.add_table("pos", pd.DataFrame(pos_table))
         self.writer.add_table("neg", pd.DataFrame(neg_table))
-
-        err, thr = calculate_eer.compute_eer(
-            pred[target == 1].detach().cpu().numpy(),
-            pred[target == 0].detach().cpu().numpy(),
-        )
-        self.writer.add_scalar("err", err)
-        self.writer.add_scalar("thr", thr)
 
     def _log_spectrogram(self, spectrogram_batch):
         spectrogram = random.choice(spectrogram_batch.cpu())
