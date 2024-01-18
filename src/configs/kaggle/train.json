@@ -7,8 +7,7 @@
     "spectrogram": {
       "type": "LFCC",
       "args": {
-        "n_lfcc": 80,
-        "log_lf": true
+        "n_lfcc": 80
       }
     },
     "log_spec": true
