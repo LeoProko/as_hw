@@ -83,7 +83,6 @@
     "early_stop": 500,
     "visualize": "wandb",
     "wandb_project": "dla-5-as",
-    "len_epoch": 1000,
     "grad_norm_clip": 10
   }
 }
