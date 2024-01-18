@@ -10,7 +10,8 @@
         "n_lfcc": 80,
         "log_lf": true
       }
-    }
+    },
+    "log_spec": true
   },
   "arch": {
     "type": "LCNN",
