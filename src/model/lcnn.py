@@ -90,7 +90,7 @@ class LCNN(nn.Module):
         )
         self.pred = nn.Sequential(
             *[
-                nn.Linear(12800, 160),
+                nn.Linear(9600, 160),
                 MFMBlock(),
                 nn.BatchNorm1d(80),
                 nn.Linear(80, 2),
