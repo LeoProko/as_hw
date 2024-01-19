@@ -74,14 +74,14 @@
     "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 253,
-      "epochs": 10,
+      "epochs": 20,
       "anneal_strategy": "cos",
       "max_lr": 3e-4,
       "pct_start": 0.1
     }
   },
   "trainer": {
-    "epochs": 10,
+    "epochs": 20,
     "save_dir": "saved/",
     "save_period": 1,
     "verbosity": 2,
