@@ -28,7 +28,7 @@
   },
   "data": {
     "eval": {
-      "batch_size": 1024,
+      "batch_size": 100,
       "num_workers": 4,
       "datasets": [
         {
@@ -47,8 +47,7 @@
   "optimizer": {
     "type": "AdamW",
     "args": {
-      "lr": 1e-4,
-      "weight_decay": 0.1
+      "lr": 3e-4
     }
   },
   "loss": {
