@@ -156,6 +156,7 @@ class Trainer(BaseTrainer):
         )
 
         self.train_metrics.update("err", err)
+        self.writer.add_scalar("_err", thr)
         self.writer.add_scalar("thr", thr)
 
         log = last_train_metrics
@@ -225,6 +226,7 @@ class Trainer(BaseTrainer):
         )
 
         self.evaluation_metrics.update("err", err)
+        self.writer.add_scalar("_err", thr)
         self.writer.add_scalar("thr", thr)
 
         # add histogram of model parameters to the tensorboard
