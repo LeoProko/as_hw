@@ -1,0 +1,87 @@
+{
+  "name": "train",
+  "n_gpu": 1,
+  "sr": 16000,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "MelSpectrogram",
+      "args": {
+        "n_mels": 60
+      }
+    },
+    "log_spec": false
+  },
+  "arch": {
+    "type": "LCNN",
+    "args": {
+      "channels": [96, 48, 192, 384, 256, 128]
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 100,
+      "num_workers": 4,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "train",
+            "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    },
+    "eval": {
+      "batch_size": 100,
+      "num_workers": 4,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "eval",
+            "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "AdamW",
+    "args": {
+      "lr": 3e-4
+    }
+  },
+  "loss": {
+    "type": "CrossEntropyLoss",
+    "module": "torch.nn",
+    "args": {}
+  },
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 253,
+      "epochs": 10,
+      "anneal_strategy": "cos",
+      "max_lr": 3e-4,
+      "pct_start": 0.1
+    }
+  },
+  "trainer": {
+    "epochs": 10,
+    "save_dir": "saved/",
+    "save_period": 1,
+    "verbosity": 2,
+    "monitor": "min eval_err",
+    "early_stop": 500,
+    "visualize": "wandb",
+    "wandb_project": "dla-5-as",
+    "grad_norm_clip": 10
+  }
+}
