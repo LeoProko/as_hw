@@ -57,7 +57,9 @@ def main(config, out_file, ckpt_name):
     model = model.to(device)
     model.eval()
 
-    wav2spec = torchaudio.transforms.LFCC(n_lfcc=config["n_lfcc"])
+    wav2spec = torchaudio.transforms.LFCC(
+        *config["preprocessing"]["spectrogram"]["args"]
+    )
     res = []
 
     with torch.no_grad():
