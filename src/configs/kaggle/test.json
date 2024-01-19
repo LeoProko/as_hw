@@ -2,14 +2,20 @@
   "name": "test",
   "n_gpu": 1,
   "sr": 16000,
-  "n_lfcc": 80,
   "max_audio_len": 64000,
   "preprocessing": {
     "sr": 16000,
     "spectrogram": {
       "type": "LFCC",
       "args": {
-        "n_lfcc": 80
+        "n_lfcc": 60,
+        "n_filter": 20,
+        "log_lf": true,
+        "speckwargs": {
+          "n_fft": 512,
+          "win_length": 320,
+          "hop_length": 160
+        }
       }
     },
     "log_spec": false
@@ -17,7 +23,7 @@
   "arch": {
     "type": "LCNN",
     "args": {
-      "channels": [64, 32, 48, 64, 32, 32]
+      "channels": [96, 48, 192, 384, 256, 128]
     }
   },
   "data": {
