@@ -2,7 +2,6 @@
   "name": "test",
   "n_gpu": 1,
   "sr": 16000,
-  "n_lfcc": 60,
   "max_audio_len": 64000,
   "preprocessing": {
     "sr": 16000,
