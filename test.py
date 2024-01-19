@@ -60,8 +60,8 @@ def main(config, out_file, ckpt_name):
     # wav2spec = torchaudio.transforms.LFCC(
     #     *config["preprocessing"]["spectrogram"]["args"]
     # )
-    wave2spec = self.config_parser.init_obj(
-        self.config_parser["preprocessing"]["spectrogram"],
+    wave2spec = config.init_obj(
+        config["preprocessing"]["spectrogram"],
         torchaudio.transforms,
     )
     res = []
