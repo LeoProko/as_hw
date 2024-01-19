@@ -96,6 +96,17 @@ class LCNN(nn.Module):
                 nn.Linear(80, 2),
             ]
         )
+        self.init_weights()
+
+    def init_weights(self):
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
+                nn.init.xavier_uniform_(module.weight)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+            elif isinstance(module, nn.Linear):
+                nn.init.normal_(module.weight, 0, 0.01)
+                nn.init.constant_(module.bias, 0)
 
     def forward(self, spectrogram: torch.Tensor, *args, **kwargs):
         # (B, 80, 251): Mel
