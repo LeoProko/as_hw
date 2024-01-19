@@ -7,8 +7,14 @@
     "spectrogram": {
       "type": "LFCC",
       "args": {
-        "n_lfcc": 80,
-        "log_lf": true
+        "n_lfcc": 60,
+        "n_filter": 20,
+        "log_lf": true,
+        "speckwargs": {
+          "n_fft": 512,
+          "win_length": 320,
+          "hop_length": 160
+        }
       }
     },
     "log_spec": false
