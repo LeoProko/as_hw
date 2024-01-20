@@ -62,14 +62,14 @@
   "optimizer": {
     "type": "Adam",
     "args": {
-      "lr": 1e-2
+      "lr": 6e-4
     }
   },
   "loss": {
     "type": "ASoftmax",
     "args": {
       "in_dim": 2,
-      "out_dim": 16,
+      "out_dim": 32,
       "margin": 2,
       "eps": 1e-9
     }
@@ -80,7 +80,7 @@
       "steps_per_epoch": 253,
       "epochs": 10,
       "anneal_strategy": "cos",
-      "max_lr": 1e-2,
+      "max_lr": 6e-4,
       "pct_start": 0.05
     }
   },
