@@ -73,11 +73,7 @@
   "lr_scheduler": {
     "type": "OneCycleLR",
     "args": {
-      "steps_per_epoch": 253,
-      "epochs": 20,
-      "anneal_strategy": "cos",
-      "max_lr": 3e-4,
-      "pct_start": 0.1
+      "gamma": 0.85
     }
   },
   "trainer": {
