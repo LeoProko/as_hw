@@ -22,6 +22,18 @@ python3 train.py -c src/configs/kaggle/train.json
 
 # Тест
 
+Лучшая модель на lfcc лежит по пути lcnn-lfcc.pth
+
 ```bash
-python3 test.py -c src/configs/kaggle/test.json -r lcnn-1.pth
+python3 test.py -c src/configs/kaggle/test.json -r lcnn-lfcc.pth
 ```
+
+## Результаты
+
+test err: 0.05277685248662606
+test thr: 0.014698578044772148
+
+fname: aaaa-za-donbass.wav, pred: 0.912
+fname: audio_1.flac, pred: 0.910
+fname: audio_2.flac, pred: 0.002
+fname: audio_3.flac, pred: 0.884
