@@ -60,7 +60,7 @@
     }
   },
   "optimizer": {
-    "type": "AdamW",
+    "type": "Adam",
     "args": {
       "lr": 5e-4
     }
