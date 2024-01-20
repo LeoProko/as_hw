@@ -11,11 +11,6 @@ class MFMBlock(nn.Module):
         return torch.max(splited[0], splited[1])
 
 
-class MyConv1d(nn.Conv1d):
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return nn.Conv1d.forward(self, input.transpose(-1, -2)).transpose(-1, -2)
-
-
 class MyConv2d(nn.Conv2d):
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         return nn.Conv2d.forward(self, input.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
@@ -100,7 +95,7 @@ class LCNN(nn.Module):
 
     def init_weights(self):
         for module in self.modules():
-            if isinstance(module, nn.Conv2d):
+            if isinstance(module, MyConv2d):
                 nn.init.kaiming_normal_(
                     module.weight, mode="fan_out", nonlinearity="relu"
                 )

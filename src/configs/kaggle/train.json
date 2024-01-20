@@ -71,9 +71,13 @@
     "args": {}
   },
   "lr_scheduler": {
-    "type": "ExponentialLR",
+    "type": "OneCycleLR",
     "args": {
-      "gamma": 0.85
+      "steps_per_epoch": 253,
+      "epochs": 10,
+      "anneal_strategy": "cos",
+      "max_lr": 5e-4,
+      "pct_start": 0.05
     }
   },
   "trainer": {
