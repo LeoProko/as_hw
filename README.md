@@ -30,10 +30,14 @@ python3 test.py -c src/configs/kaggle/test.json -r lcnn-lfcc.pth
 
 ## Результаты
 
+На eval датасете ошибка и порог получились такие:
+
 ```
 test err: 0.05277685248662606
 test thr: 0.014698578044772148
 ```
+
+Прогнозы для валидационных аудио:
 
 ```
 fname: aaaa-za-donbass.wav, pred: 0.912
