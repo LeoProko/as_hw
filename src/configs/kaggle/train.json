@@ -71,7 +71,7 @@
     "args": {}
   },
   "lr_scheduler": {
-    "type": "OneCycleLR",
+    "type": "ExponentialLR",
     "args": {
       "gamma": 0.85
     }
