@@ -22,7 +22,7 @@ class ASoftmax(nn.Module):
         num = torch.cos(torch.acos(theta) * self.margin)
 
         index = torch.ones_like(cos).bool()
-        index.scatter_(1, targets.view(-1, 1), False)
+        index = index.scatter_(1, targets.view(-1, 1), False)
 
         den = cos[index].view(cos.size(0), -1)
         den = torch.exp(num) + torch.sum(torch.exp(den), dim=1)
