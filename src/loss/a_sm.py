@@ -16,7 +16,7 @@ class ASoftmax(nn.Module):
         nn.init.xavier_uniform_(self.ll)
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor, *args, **kwargs):
-        cos = F.normalize(logits) @ F.normalize(self.ll)
+        cos = F.normalize(logits) @ F.normalize(self.ll.weight)
         theta = torch.diagonal(cos.transpose(0, 1)[targets])
         theta = torch.clamp(theta, -1 + self.eps, 1 - self.eps)
         num = torch.cos(torch.acos(theta) * self.margin)
