@@ -96,9 +96,7 @@ class LCNN(nn.Module):
     def init_weights(self):
         for module in self.modules():
             if isinstance(module, MyConv2d):
-                nn.init.kaiming_normal_(
-                    module.weight, mode="fan_out", nonlinearity="relu"
-                )
+                nn.init.xavier_normal_(module.weight)
                 nn.init.constant_(module.bias, 0)
             elif isinstance(module, nn.Linear):
                 nn.init.normal_(module.weight, 0, 0.01)
