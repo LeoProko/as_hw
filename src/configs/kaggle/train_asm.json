@@ -1,0 +1,98 @@
+{
+  "name": "train",
+  "n_gpu": 1,
+  "sr": 16000,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "LFCC",
+      "args": {
+        "n_lfcc": 60,
+        "n_filter": 20,
+        "log_lf": true,
+        "speckwargs": {
+          "n_fft": 512,
+          "win_length": 320,
+          "hop_length": 160
+        }
+      }
+    },
+    "log_spec": false
+  },
+  "arch": {
+    "type": "LCNN",
+    "args": {
+      "channels": [96, 48, 192, 384, 256, 128]
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 100,
+      "num_workers": 4,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "train",
+            "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    },
+    "eval": {
+      "batch_size": 100,
+      "num_workers": 4,
+      "datasets": [
+        {
+          "type": "AsDataset",
+          "args": {
+            "part": "eval",
+            "data_dir": "/kaggle/input/asvpoof-2019-dataset/LA/LA",
+            "index_dir": "/kaggle/working/",
+            "max_audio_len": 64000
+          },
+          "module": "src.datasets"
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 6e-4
+    }
+  },
+  "loss": {
+    "type": "ASoftmax",
+    "args": {
+      "in_dim": 2,
+      "out_dim": 16,
+      "margin": 2,
+      "eps": 1e-9
+    }
+  },
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 253,
+      "epochs": 10,
+      "anneal_strategy": "cos",
+      "max_lr": 6e-4,
+      "pct_start": 0.05
+    }
+  },
+  "trainer": {
+    "epochs": 10,
+    "save_dir": "saved/",
+    "save_period": 1,
+    "verbosity": 2,
+    "monitor": "min eval_err",
+    "early_stop": 500,
+    "visualize": "wandb",
+    "wandb_project": "dla-5-as",
+    "grad_norm_clip": 10
+  }
+}

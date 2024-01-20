@@ -1,3 +1,3 @@
-# from src.loss.hifi import HiFiLoss
+from src.loss.a_sm import ASoftmax
 
-# __all__ = [HiFiLoss]
+__all__ = ["ASoftmax"]
