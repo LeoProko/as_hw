@@ -74,7 +74,8 @@
     "type": "ExponentialLR",
     "args": {
       "gamma": 0.85,
-      "last_epoch": 2530
+      "last_epoch": 2530,
+      "initial_lr": 3e-4
     }
   },
   "trainer": {
