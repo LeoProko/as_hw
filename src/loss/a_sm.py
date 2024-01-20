@@ -12,11 +12,11 @@ class ASoftmax(nn.Module):
         self.margin = margin
         self.eps = eps
 
-        self.w = nn.Parameter(torch.Tensor(in_dim, out_dim))
+        self.w = nn.Parameter(torch.Tensor(out_dim, in_dim))
         nn.init.xavier_uniform_(self.w)
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor, *args, **kwargs):
-        cos = F.normalize(logits) @ F.normalize(self.w)
+        cos = F.normalize(logits, eps=self.eps) @ F.normalize(self.w, eps=self.eps).T
         theta = torch.diagonal(cos.transpose(0, 1)[targets])
         theta = torch.clamp(theta, -1 + self.eps, 1 - self.eps)
         num = torch.cos(torch.acos(theta) * self.margin)
