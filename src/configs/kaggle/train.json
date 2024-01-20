@@ -73,7 +73,8 @@
   "lr_scheduler": {
     "type": "ExponentialLR",
     "args": {
-      "gamma": 0.85
+      "gamma": 0.85,
+      "last_epoch": 2530
     }
   },
   "trainer": {
