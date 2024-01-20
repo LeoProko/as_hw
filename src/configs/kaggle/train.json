@@ -62,7 +62,8 @@
   "optimizer": {
     "type": "AdamW",
     "args": {
-      "lr": 3e-4
+      "lr": 3e-4,
+      "initial_lr": 3e-4
     }
   },
   "loss": {
@@ -74,8 +75,7 @@
     "type": "ExponentialLR",
     "args": {
       "gamma": 0.85,
-      "last_epoch": 2530,
-      "initial_lr": 3e-4
+      "last_epoch": 2530
     }
   },
   "trainer": {
